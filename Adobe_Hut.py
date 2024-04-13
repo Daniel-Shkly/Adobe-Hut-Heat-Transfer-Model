@@ -66,7 +66,7 @@ T_init = 0
 for phi in Phi:
     phi = T_init
 
-it_number = 500
+it_number = 1000
 Phi_history = np.zeros([n,it_number-1])
 
 def dphi_dt(temp_vec, n, i, parameter):
@@ -75,7 +75,9 @@ def dphi_dt(temp_vec, n, i, parameter):
     temp_i = temp_vec[1]
     temp_i_plus_1 = temp_vec[2]
 
-    dphi_dt = (parameter) * ((temp_i_minus_1 - 2*temp_i + temp_i_plus_1) + (1/n-1-i)*(temp_i_minus_1 - temp_i_plus_1))#
+    curr_r = ((n-1-i)*h)**2
+
+    dphi_dt = (parameter) * (((n-1)**2)*(temp_i_minus_1 - 2*temp_i + temp_i_plus_1) + ((n-1)/curr_r)*(temp_i_plus_1 - temp_i_minus_1))#
 
     return dphi_dt
 
@@ -116,7 +118,7 @@ for t in range(1, it_number):
     for i in range(len(Phi)):
         # BC2
         if i == 0:
-            Phi[i] = u_ext(t/48) + (((n-1)/2)/(n-P5-1)) * Phi[i+1]
+            Phi[i] = u_ext(t/48) - (P5 * 2 * h * (Phi[i+1]-u_ext(t/48)))
             Phi_history[i,t-1] = Phi[i]
         
         # Heat equation in wall
@@ -144,7 +146,7 @@ for t in range(1, it_number):
             Phi_history[i,t-1] = Phi[i]
     
     if t%10 == 0:
-        print(Phi_history[:,t-1][40:])
+        print(Phi_history[:,t-1][0:5])
     
     # new_y = Phi
 
