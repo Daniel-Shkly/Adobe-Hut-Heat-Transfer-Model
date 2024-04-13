@@ -66,7 +66,7 @@ T_init = 0
 for phi in Phi:
     phi = T_init
 
-it_number = 1000
+it_number = 500
 Phi_history = np.zeros([n,it_number-1])
 
 def dphi_dt(temp_vec, n, i, parameter):
@@ -75,7 +75,9 @@ def dphi_dt(temp_vec, n, i, parameter):
     temp_i = temp_vec[1]
     temp_i_plus_1 = temp_vec[2]
 
-    return (parameter/h**2) *  ((temp_i_minus_1 - 2*temp_i + temp_i_plus_1) + (1/i)*(temp_i_minus_1 - temp_i_plus_1))
+    dphi_dt = (parameter) * ((temp_i_minus_1 - 2*temp_i + temp_i_plus_1) + (1/n-1-i)*(temp_i_minus_1 - temp_i_plus_1))#
+
+    return dphi_dt
 
 # Runge-Kutta method, only returns the increment not
 # the full new estimate, hence the '+=' in the loop
@@ -141,7 +143,8 @@ for t in range(1, it_number):
             Phi[i] = Phi[i-1]
             Phi_history[i,t-1] = Phi[i]
     
-    print(Phi[n-1])
+    if t%10 == 0:
+        print(Phi_history[:,t-1][40:])
     
     # new_y = Phi
 
