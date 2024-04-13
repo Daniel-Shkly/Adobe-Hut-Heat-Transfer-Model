@@ -37,9 +37,9 @@ n = 50
 # Parameters
 
 # P1 = [k/(rho*cp)]_wall * [tau/(R_b)^2]
-P1 = 2.4e-3 * (n-1)**2
+P1 = 2.4e-3 
 # P2 = [k/(rho*cp)]_air * [tau/(R_b)^2]
-P2 = 0.23 * (n-1)**2
+P2 = 0.23 
 # P3 = R_a / R_b
 P3 = 0.9
 # P4 = k_air / k_wall
@@ -69,21 +69,27 @@ for phi in Phi:
 it_number = 1000
 Phi_history = np.zeros([n,it_number-1])
 
-def dphi_dt(temp_vec, n, i):
+def dphi_dt(temp_vec, n, i, parameter):
     #n_minus_one_squared = (n-1)**2
     temp_i_minus_1 = temp_vec[0]
     temp_i = temp_vec[1]
     temp_i_plus_1 = temp_vec[2]
 
-    return (temp_i_minus_1 - 2*temp_i + temp_i_plus_1) + (1/n-1-i)*(temp_i_minus_1 - temp_i_plus_1)
+    return (parameter/h**2) *  ((temp_i_minus_1 - 2*temp_i + temp_i_plus_1) + (1/i)*(temp_i_minus_1 - temp_i_plus_1))
 
 # Runge-Kutta method, only returns the increment not
 # the full new estimate, hence the '+=' in the loop
 def Runge_Kutta(temp_vec, dphi_dt, h, i, n, parameter):
-    k1 = (parameter/h**2) * dphi_dt(temp_vec, n, i)
-    k2 = (parameter/h**2) * dphi_dt(temp_vec + [temp*(h*k1)/2 for temp in temp_vec], n, i)
-    k3 = (parameter/h**2) * dphi_dt(temp_vec + [temp*(h*k2)/2 for temp in temp_vec], n, i)
-    k4 = (parameter/h**2) * dphi_dt(temp_vec + [temp*(h*k3) for temp in temp_vec], n, i)
+    k1 = dphi_dt(temp_vec, n, i, parameter)
+
+    k2_temp_vec = temp_vec + [temp*(h*k1)/2 for temp in temp_vec]
+    k2 = dphi_dt(k2_temp_vec, n, i, parameter)
+
+    k3_temp_vec = temp_vec + [temp*(h*k2)/2 for temp in temp_vec]
+    k3 = dphi_dt(k3_temp_vec, n, i, parameter)
+
+    k4_temp_vec = temp_vec + [temp*(h*k3) for temp in temp_vec]
+    k4 = dphi_dt(k4_temp_vec, n, i, parameter)
 
     return (h/6) * (k1 + 2*k2 + 2*k3 + k4)
 
@@ -108,7 +114,7 @@ for t in range(1, it_number):
     for i in range(len(Phi)):
         # BC2
         if i == 0:
-            Phi[i] = u_ext(t/48) + (u_ext(t/48)-Phi[i+1])/(2*P5*h) #(u_ext(t/48)/2) * (n-1-2*P5)/(n-1-P5) + (Phi[i+1]/2) * (n-1)/(n-1-P5)
+            Phi[i] = u_ext(t/48) + (((n-1)/2)/(n-P5-1)) * Phi[i+1]
             Phi_history[i,t-1] = Phi[i]
         
         # Heat equation in wall
@@ -148,6 +154,8 @@ for t in range(1, it_number):
 
     #time.sleep(0.01)
 
+
+# Clamping for if temperature starts going too high/low
 for i in Phi_history:
     for j in range(len(i)):
         if abs(i[j]) > 10:
