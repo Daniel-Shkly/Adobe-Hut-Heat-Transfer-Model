@@ -43,7 +43,7 @@ P2 = 0.23
 # P3 = R_a / R_b
 P3 = 0.9
 # P4 = k_air / k_wall
-P4 = 5.3e-2
+P4 = 5.3e-2 
 # P5 = h * R_b / k_wall
 P5 = 8
 
@@ -63,21 +63,20 @@ Phi = np.zeros(n)
 
 # Set temperatures at time = 0
 T_init = 0
-for phi in Phi:
-    phi = T_init
+for i in range(len(Phi)):
+    Phi[i] = T_init
 
-it_number = 1000
+it_number = 10000
 Phi_history = np.zeros([n,it_number-1])
 
 def dphi_dt(temp_vec, n, i, parameter):
-    #n_minus_one_squared = (n-1)**2
     temp_i_minus_1 = temp_vec[0]
     temp_i = temp_vec[1]
     temp_i_plus_1 = temp_vec[2]
 
     curr_r = ((n-1-i)*h)**2
 
-    dphi_dt = (parameter) * (((n-1)**2)*(temp_i_minus_1 - 2*temp_i + temp_i_plus_1) + ((n-1)/curr_r)*(temp_i_plus_1 - temp_i_minus_1))#
+    dphi_dt = (parameter) * (((n-1)**2)*(temp_i_minus_1 - 2*temp_i + temp_i_plus_1) + ((n-1)/curr_r)*(temp_i_plus_1 - temp_i_minus_1))
 
     return dphi_dt
 
@@ -98,8 +97,8 @@ def Runge_Kutta(temp_vec, dphi_dt, h, i, n, parameter):
     return (h/6) * (k1 + 2*k2 + 2*k3 + k4)
 
 # Plotting stuff
-x = np.linspace(0,50,50)
-y = Phi
+# x = np.linspace(0,50,50)
+# y = Phi
 
 # plt.ion()
 
@@ -111,14 +110,21 @@ y = Phi
 # plt.xlabel("Lines from the outside in")
 # plt.ylabel("Temperature")
 
-# plt.ylim(-10, 10)
+# plt.ylim(-1, 2)
 
 # The actual fancy stuff
 for t in range(1, it_number):
     for i in range(len(Phi)):
         # BC2
         if i == 0:
-            Phi[i] = u_ext(t/48) - (P5 * 2 * h * (Phi[i+1]-u_ext(t/48)))
+            # k1 = P1*(2)*P5* (Phi[0] - u_ext(t/48))
+            # k2 = P1*(2)*P5* (Phi[0]+(Phi[0]*k1*h)/2 - u_ext(t/48 + 1/96))
+            # k3 = P1*(2)*P5* (Phi[0]+(Phi[0]*k2*h)/2 - u_ext(t/48 + 1/96))
+            # k4 = P1*(2)*P5* (Phi[0]+(Phi[0]*k3*h)   - u_ext(t/48 + 1/48))
+
+            # Phi[i] += (h/6) * (k1 + 2*k2 + 2*k3 + k4)
+
+            Phi[i] = u_ext(t/1000) + (u_ext(t/1000) - Phi[1])/(2*P5*h)
             Phi_history[i,t-1] = Phi[i]
         
         # Heat equation in wall
@@ -129,13 +135,13 @@ for t in range(1, it_number):
 
         # BC1/4
         elif i == (n - n*P3):
-            Phi[i] = (Phi[i-1] - P4*Phi[i+1])/(1-P4)
+            Phi[i] = (P4*Phi[i+1] - Phi[i-1]) / (P4-1)
             # dPhi_dt = Phi[i-1] 
             # Phi[i] += Runge_Kutta(Phi[i], dPhi_dt , h) # should be += Runge-kutta of the current expression (or something like that)
             Phi_history[i,t-1] = Phi[i]
         
         # Heat equation in the air
-        elif i > n*P3 and i < n-1:
+        elif i > n-n*P3 and i < n-1:
             temp_vec = [Phi[i-1],Phi[i],Phi[i+1]]
             Phi[i] += Runge_Kutta(temp_vec, dphi_dt , h, i, n, P2) # should be += Runge-kutta of the current expression (or something like that)
             Phi_history[i,t-1] = Phi[i]
@@ -145,8 +151,8 @@ for t in range(1, it_number):
             Phi[i] = Phi[i-1]
             Phi_history[i,t-1] = Phi[i]
     
-    if t%10 == 0:
-        print(Phi_history[:,t-1][0:5])
+    if t < 100:
+        print(Phi_history[:,t-1][:5])
     
     # new_y = Phi
 
@@ -157,53 +163,38 @@ for t in range(1, it_number):
 
     # fig.canvas.flush_events()
 
-    #time.sleep(0.01)
+    # time.sleep(0.01)
 
 
 # Clamping for if temperature starts going too high/low
-for i in Phi_history:
-    for j in range(len(i)):
-        if abs(i[j]) > 10:
-            i[j] = 0
+# for i in Phi_history:
+#     for j in range(len(i)):
+#         if abs(i[j]) > 10:
+#             i[j] = 0
 
-for i in range(0, n):
-    plt.plot(np.linspace(0,it_number, it_number-1), Phi_history[i]+i, label=f'Phi{i}')
+# for i in range(0, n):
+#     plt.plot(np.linspace(0,it_number, it_number-1), Phi_history[i]+i, label=f'Phi{i}')
 
+# y = np.zeros(it_number-1)
+# for i in range(len(y)):
+#     y[i] = n - n*P3
+# plt.plot(np.linspace(0,it_number, it_number-1), y, label = 'wall', color='black')
 
+plt.plot(np.linspace(0,it_number, it_number-1), Phi_history[0], label=f'Phi{0}')
+plt.plot(np.linspace(0,it_number, it_number-1), Phi_history[1], label=f'Phi{1}')
+plt.plot(np.linspace(0,it_number, it_number-1), Phi_history[2], label=f'Phi{2}')
+plt.plot(np.linspace(0,it_number, it_number-1), Phi_history[3], label=f'Phi{3}')
+plt.plot(np.linspace(0,it_number, it_number-1), Phi_history[4], label=f'Phi{4}')
+plt.plot(np.linspace(0,it_number, it_number-1), Phi_history[5], label=f'Phi{5}')
+plt.plot(np.linspace(0,it_number, it_number-1), Phi_history[6], label=f'Phi{6}')
+plt.plot(np.linspace(0,it_number, it_number-1), Phi_history[7], label=f'Phi{7}')
+plt.plot(np.linspace(0,it_number, it_number-1), Phi_history[8], label=f'Phi{8}')
+plt.plot(np.linspace(0,it_number, it_number-1), Phi_history[9], label=f'Phi{9}')
+plt.plot(np.linspace(0,it_number, it_number-1), Phi_history[10], label=f'Phi{10}')
+plt.plot(np.linspace(0,it_number, it_number-1), Phi_history[20], label=f'Phi{20}')
+
+plt.legend()
 plt.show()
-
-
-
-
-# Matrix M s.t. dPhi/dt = 1/h^2 * M * Phi
-# 2 of these, 1 for the wall, and 1 for the
-# internal air
-
-# The number of 'lines' in the wall
-# n_wall = n - P3*n
-
-# # The wall Matrix
-# M_wall = np.zeros([n_wall,n_wall])
-# for i in range(len(M_wall) - 1):
-#     for j in range(len(M_wall) - 1):
-#         if i == j:
-#             M_wall[i,j] = -2
-#             M_wall[i+1,j] = 1
-#             M_wall[i,j+1] = 1
-# M_wall[n_wall-1,n_wall-1] = -2 
-
-# # The number of 'lines' in the air
-# n_air = P3 * n
-
-# # The air Matrix
-# M_air = np.zeros([n_air,n_air])
-# for i in range(len(M_air) - 1):
-#     for j in range(len(M_air) - 1):
-#         if i == j:
-#             M_air[i,j] = -2
-#             M_air[i+1,j] = 1
-#             M_air[i,j+1] = 1
-# M_air[n_air-1,n_air-1] = -2 
 
 
 # Boundary Conitions
