@@ -1,5 +1,5 @@
 # General Info
-In climates characterized by hot days and cold nights, adobe huts are used to mitigate the effects off extreme external
+In climates characterized by hot days and cold nights, adobe huts are used to mitigate the effects of extreme external
 temperatures on the inside of the hut. The walls require a large and relatively long input of heat from the sun and
 from the surrounding air before they warm through to the interior. After the sun sets and the temperature drops, the
 wall will continue to transfer the heat it built up during the day to the interior for several hours. This causes a time
