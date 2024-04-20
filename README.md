@@ -7,6 +7,8 @@ lag effect on the internal temperature of the hut relative to the outside.
 
 This project is a simplified model showing how heat transfers through the hut over time. All math and details are in IMCS_3020U_Final.pdf.
 
+![alt text](https://github.com/Daniel-Shkly/Adobe-Hut-Heat-Transfer-Model/blob/main/2D%20Plot.png)
+
 ## Running the Code
 All you need to run the model is the Adobe_Hut.py file. Simply download or copy paste the code into whatever IDE you have and run. Follow the prompts to get the ddifferent plots.
 
